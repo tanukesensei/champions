@@ -7,6 +7,7 @@ defmodule Champions.Accounts.User do
     field :password, :string, virtual: true, redact: true
     field :hashed_password, :string, redact: true
     field :confirmed_at, :naive_datetime
+    field :points, :integer, default: 0
 
     timestamps()
   end
@@ -154,5 +155,15 @@ defmodule Champions.Accounts.User do
     else
       add_error(changeset, :current_password, "is not valid")
     end
+  end
+
+  @doc """
+  A user changeset to update points
+  """
+  def points_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:points])
+    |> validate_required([:points])
+    |> validate_number(:points, greater_than_or_equal_to: 0)
   end
 end

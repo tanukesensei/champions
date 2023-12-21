@@ -14,6 +14,7 @@ defmodule Champions.AccountsTest do
     test "returns the user if the email exists" do
       %{id: id} = user = user_fixture()
       assert %User{id: ^id} = Accounts.get_user_by_email(user.email)
+      assert user.points == 0
     end
   end
 
@@ -503,6 +504,43 @@ defmodule Champions.AccountsTest do
   describe "inspect/2 for the User module" do
     test "does not include password" do
       refute inspect(%User{password: "123456"}) =~ "password: \"123456\""
+    end
+  end
+
+  describe "change_user_points/2" do
+    test "accepts non-negative integers" do
+      assert %Ecto.Changeset{} =
+               changeset = Accounts.change_user_points(%User{}, %{"points" => -1})
+
+      refute changeset.valid?
+
+      assert %Ecto.Changeset{} =
+               changeset = Accounts.change_user_points(%User{}, %{"points" => 0})
+
+      assert changeset.valid?
+
+      assert %Ecto.Changeset{} =
+               changeset = Accounts.change_user_points(%User{}, %{"points" => 10})
+
+      assert changeset.valid?
+    end
+  end
+
+  describe "set_user_points/2" do
+    setup do
+      %{user: user_fixture()}
+    end
+
+    test "updates the amounts of points of an existing user", %{user: user} do
+      {:ok, updated_user} = Accounts.update_user_points(user, 10)
+      assert updated_user.points == 10
+    end
+  end
+
+  describe "list_users/0" do
+    test "show all users on our system" do
+      user = user_fixture()
+      assert [^user] = Accounts.list_users()
     end
   end
 end
